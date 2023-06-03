@@ -1,0 +1,4 @@
+rootProject.name = 'social-media-boris'
+include 'dao'
+include 'business'
+include 'api'

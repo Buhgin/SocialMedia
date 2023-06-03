@@ -1,0 +1,54 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' version "$springBootVersion"
+    id 'io.spring.dependency-management' version "$dependencyManagementVersion"
+    id 'com.boris.common-conventions'
+}
+
+group = 'com.boris.business'
+version = '0.0.1-SNAPSHOT'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(":dao")
+
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation "org.springdoc:springdoc-openapi-starter-common:${springDocVersion}"
+    implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+    implementation "org.mapstruct:mapstruct-processor:$mapstructVersion"
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    compileOnly "org.mapstruct:mapstruct-processor:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
+    implementation "com.itextpdf:kernel:${itextpdfKernelVersion}"
+    implementation "com.itextpdf:html2pdf:${itextpdfHtml2pdfVersion}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'org.junit.platform:junit-platform-runner:1.9.2'
+    testImplementation 'org.mockito:mockito-core:5.1.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.1.1'
+}

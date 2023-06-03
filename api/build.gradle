@@ -1,0 +1,30 @@
+plugins {
+    id 'org.springframework.boot' version "$springBootVersion"
+    id 'io.spring.dependency-management' version "$dependencyManagementVersion"
+    id 'com.boris.common-conventions'
+}
+
+group = 'com.boris.api'
+version = 'unspecified'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":business")
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}"
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation "com.auth0:java-jwt:${auth0JavaJwtVersion}"
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: "${jsonWebTokenVersion}"
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: "${jsonWebTokenVersion}"
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: "${jsonWebTokenVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}

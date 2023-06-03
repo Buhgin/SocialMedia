@@ -15,9 +15,7 @@ public record PostCreateRequest(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "C:\\Users\\User\\IdeaProjects\\SocialMedia\\images")
         String image,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Post content")
-        String content,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "2021-08-01T12:00:00")
-        LocalDateTime createdAt) {
+        String content) {
 
 
 }

@@ -10,6 +10,7 @@ import com.boris.business.model.request.PostCreateRequest;
 import com.boris.dao.entity.Activity;
 import com.boris.dao.entity.Post;
 import com.boris.dao.entity.User;
+import com.boris.dao.enums.ActivityType;
 import com.boris.dao.repository.ActivityRepository;
 import com.boris.dao.repository.PostRepository;
 import com.boris.dao.repository.UserRepository;
@@ -35,44 +36,43 @@ public class PostService {
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
 
-    public PostDto create(PostCreateRequest postCreateRequest, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new ResourceNotFoundException("User not found id "+ userId));
+    public PostDto create(PostCreateRequest postCreateRequest, String userName) {
+        User user = getUser(userName);
         Post post = postCreateMapper.toEntity(postCreateRequest);
         post.setUser(user);
-        saveActivityPost(post,user,Activity.ActivityType.POST_CREATED);
+        post.setCreatedAt(LocalDateTime.now());
+        saveActivityPost(post,user, ActivityType.POST_CREATED);
         postRepository.save(post);
         return postMapper.toDto(post);
     }
 
-    public PostDto update(Long id, PostCreateRequest postCreateRequest,String name) {
-        if(authenticationUserCheckById(id,name)){
-        Post post = postRepository.findById(id).orElseThrow(() ->{
-            log.error("Post not found id " + id);
-                    throw new ResourceNotFoundException("Post not found id " + id);}
-        );
-        User user = userRepository.findByEmail(name).orElseThrow(() ->{
-                    log.error("User not found name " + name);
-                    throw new ResourceNotFoundException("User not found name " + name);}
-        );
+
+    public PostDto update(Long postId, PostCreateRequest postCreateRequest,String name) {
+        if(authenticationUserCheckById(postId,name)){
+        Post post = getPost(postId);
+            log.info("post found"+post.getTitle());
+        User user = getUser(name);
+            log.info("user found"+user.getUsername());
         Post newPost = postCreateMapper.toEntity(postCreateRequest);
         newPost.setId(post.getId());
         newPost.setUser(post.getUser());
+        newPost.setCreatedAt(LocalDateTime.now());
         Post updatedPost = postRepository.save(newPost);
-        saveActivityPost(updatedPost,user,Activity.ActivityType.POST_UPDATED);
+            log.info("post updated"+updatedPost.getTitle());
+        saveActivityPost(updatedPost,user, ActivityType.POST_UPDATED);
+        log.info("activity saved"+updatedPost.getTitle());
         return postMapper.toDto(updatedPost);}
         else{
             log.error("This post does not apply to the user "+ name);
             throw new ResourceNotFoundException("This post does not apply to the user "+ name);
     }}
-    public void deleteById(Long id, String name) {
-        if (authenticationUserCheckById(id, name)) {
-            activityRepository.delete(activityRepository.findByPostId(id).orElseThrow(null));
-            Post post = postRepository.findById(id).orElseThrow(() ->{
-                        log.error("Post not found id " + id);
-                        throw new ResourceNotFoundException("Post not found id " + id);
-            });
+    public void deleteById(Long postId, String name) {
+        if (authenticationUserCheckById(postId, name)) {
+            activityRepository.delete(activityRepository.findByPostId(postId).orElseThrow(null));
+          log.info("activity deleted postId "+postId);
+            Post post = getPost(postId);
             postRepository.delete(post);
+            log.info("post deleted postId "+postId);
         } else {
             log.error("This post does not apply to the user " + name);
             throw new ResourceNotFoundException("This post does not apply to the user " + name);
@@ -95,28 +95,39 @@ public class PostService {
         return postMapper.toDtoSet(postSet);
     }
     public PostDto getOne(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() ->{
-        log.error("Post not found id "+id);
-            throw new ResourceNotFoundException("Post not found id "+id);
-        });
+        Post post = getPost(id);
         return postMapper.toDto(post);
     }
     private boolean authenticationUserCheckById(Long postId,String name) {
-        User user = userRepository.findByUsernameOrEmail(name,name).orElseThrow(() ->{
-                    log.error("User not found name "+ name);
-                    throw new ResourceNotFoundException("User not found name "+ name);
-        });
-        Post post = postRepository.findById(postId).orElseThrow(() ->{
-                    log.error("Post not found id "+ postId);
-                    throw new ResourceNotFoundException("Post not found id "+ postId);
-        });
+        User user = getUser(name);
+        Post post = getPost(postId);
         return post.getUser().getId().equals(user.getId());
     }
-    private void saveActivityPost(Post post, User user, Activity.ActivityType type) {
+    private User getUser(String userName){
+        return  userRepository.findByEmail(userName).orElseThrow(() ->{
+            log.error("User not found name "+ userName);
+            throw new ResourceNotFoundException("User not found name "+ userName);
+        });
+    }
+    private Post getPost(Long postId){
+        return postRepository.findById(postId).orElseThrow(() ->{
+            log.error("Post not found id "+ postId);
+            throw new ResourceNotFoundException("Post not found id "+ postId);
+        });
+    }
+
+    /**
+     * Create activity for post
+     * Status type: POST_CREATED, POST_UPDATED
+     * @param post
+     * @param user
+     * @param type
+     */
+    private void saveActivityPost(Post post, User user, ActivityType type) {
         Activity activity = new Activity();
         activity.setUser(user);
         activity.setPost(post);
-        activity.setCreatedAt(LocalDateTime.now());
+        activity.setCreatedAt(post.getCreatedAt());
         activity.setType(type);
         activityRepository.save(activity);
     }

@@ -19,12 +19,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
 
 import java.util.Set;
 
+import static com.boris.util.UserSession.getCurrentUserName;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/${api.version}/posts")
@@ -42,9 +41,8 @@ public class PostController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })
-    public ResponseEntity<PostDto> create(@PathVariable(value = "userId") Long userId,
-                                          @Valid @RequestBody PostCreateRequest postCreateRequest) {
-        PostDto post = postService.create(postCreateRequest, userId);
+    public ResponseEntity<PostDto> create(@Valid @RequestBody PostCreateRequest postCreateRequest) {
+        PostDto post = postService.create(postCreateRequest, getCurrentUserName());
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
@@ -102,9 +100,5 @@ public class PostController {
         postService.deleteById(id, getCurrentUserName());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-    private String getCurrentUserName() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return authentication.getName();
-    }
 }

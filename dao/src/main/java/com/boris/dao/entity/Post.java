@@ -20,19 +20,16 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
     @Column(name = "title")
     private String title;
-
     @Column(name = "description")
     private String description;
     @Column(name = "image")
     private String image;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User user;
 
 }

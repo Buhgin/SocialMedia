@@ -32,7 +32,7 @@ public class AuthenticationService {
     public TokenResponse register(RegistrationRequest registrationRequest) {
         RegistrationRequest saveRequest = new RegistrationRequest(registrationRequest.username(),
                 registrationRequest.email(),
-                registrationRequest.password());
+               passwordEncoder.encode(registrationRequest.password()));
 
 
         AuthDetailsDto authDetailsDto = authDetailsService.create(saveRequest);

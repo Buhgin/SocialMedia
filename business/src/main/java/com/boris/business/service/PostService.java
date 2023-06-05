@@ -65,8 +65,6 @@ public class PostService {
     }}
     public void deleteById(Long postId, String name) {
         if (postRepository.existsByIdAndUserId(postId, getUser(name).getId())) {
-            //  activityRepository.delete(activityRepository.findByPostId(postId).orElseThrow(null));
-          //log.info("activity deleted postId "+postId);
             Post post = getPost(postId);
             postRepository.delete(post);
             log.info("post deleted postId "+postId);

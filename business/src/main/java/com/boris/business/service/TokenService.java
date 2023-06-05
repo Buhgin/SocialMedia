@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -24,20 +26,30 @@ public class TokenService {
     public void saveUserToken(TokenCreateRequest tokenCreateRequest) {
         log.info("Creating new token: {}", tokenCreateRequest.token());
         Optional<User> user = userRepository.findByEmail(tokenCreateRequest.authDetailsDto().email());
-        Token token = tokenCreateMapper.toEntity(tokenCreateRequest);
-        token.setUser(user.get());
-        token.setToken(tokenCreateRequest.token());
-        token.setTokenType(TokenType.BEARER);
-        token.setExpired(false);
-        token.setRevoked(false);
-        tokenRepository.save(token);
-        log.info("Token with value='{}' created and assigned", tokenCreateRequest.token());
+        if(  user.isPresent()) {
+             Token token = tokenCreateMapper.toEntity(tokenCreateRequest);
+             token.setUser(user.get());
+             token.setToken(tokenCreateRequest.token());
+             token.setTokenType(TokenType.BEARER);
+             token.setExpired(false);
+             token.setRevoked(false);
+             tokenRepository.save(token);
+             log.info("Token with value='{}' created and assigned", tokenCreateRequest.token());
+         }
+         else {
+             log.info("User with email '{}' not found", tokenCreateRequest.authDetailsDto().email());
+             throw new NoSuchElementException("User not found");
+         }
     }
 
     public void revokeAllUserTokens(TokenCreateRequest tokenCreateRequest) {
         log.info("Searching for user email '{}' and token '{}'", tokenCreateRequest.authDetailsDto().email(), tokenCreateRequest.token());
         Optional<User> user = userRepository.findByEmail(tokenCreateRequest.authDetailsDto().email());
-        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.get().getId());
+        if(user.isEmpty()) {
+            log.info("User with email '{}' not found", tokenCreateRequest.authDetailsDto().email());
+            throw new NoSuchElementException("User not found");
+        }
+        List<Token> validUserTokens  = tokenRepository.findAllValidTokenByUser(user.get().getId());
         if(validUserTokens.isEmpty()) {
             return;
         }

@@ -17,6 +17,8 @@ public record PostDto(
         String description,
         @Schema(example = "C:\\Users\\User\\IdeaProjects\\SocialMedia\\images")
         String image,
+        @Schema(example = "username boris, email boris@ya.ru")
+        UserDto user,
 
         @Schema(example = "2021-08-01T12:00:00")
         LocalDateTime createdAt) {

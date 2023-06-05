@@ -7,14 +7,13 @@ import com.boris.business.model.dto.PostDto;
 import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.PostCreateRequest;
-import com.boris.dao.entity.Activity;
+import com.boris.dao.entity.FriendRequest;
 import com.boris.dao.entity.Post;
 import com.boris.dao.entity.User;
-import com.boris.dao.enums.ActivityType;
 import com.boris.dao.repository.ActivityRepository;
+import com.boris.dao.repository.FriendRepository;
 import com.boris.dao.repository.PostRepository;
 import com.boris.dao.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,8 +21,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -34,21 +34,18 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final ActivityRepository activityRepository;
+    private final FriendRepository friendRepository;
 
     public PostDto create(PostCreateRequest postCreateRequest, String userName) {
         User user = getUser(userName);
         Post post = postCreateMapper.toEntity(postCreateRequest);
         post.setUser(user);
-        post.setCreatedAt(LocalDateTime.now());
-        saveActivityPost(post,user, ActivityType.POST_CREATED);
+        post.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         postRepository.save(post);
         return postMapper.toDto(post);
     }
-
-
     public PostDto update(Long postId, PostCreateRequest postCreateRequest,String name) {
-        if(authenticationUserCheckById(postId,name)){
+         if (postRepository.existsByIdAndUserId(postId, getUser(name).getId())){
         Post post = getPost(postId);
             log.info("post found"+post.getTitle());
         User user = getUser(name);
@@ -56,20 +53,20 @@ public class PostService {
         Post newPost = postCreateMapper.toEntity(postCreateRequest);
         newPost.setId(post.getId());
         newPost.setUser(post.getUser());
-        newPost.setCreatedAt(LocalDateTime.now());
+        newPost.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         Post updatedPost = postRepository.save(newPost);
             log.info("post updated"+updatedPost.getTitle());
-        saveActivityPost(updatedPost,user, ActivityType.POST_UPDATED);
-        log.info("activity saved"+updatedPost.getTitle());
+    //    saveActivityPost(updatedPost,user, ActivityType.POST_UPDATED);
+      //  log.info("activity saved"+updatedPost.getTitle());
         return postMapper.toDto(updatedPost);}
         else{
             log.error("This post does not apply to the user "+ name);
             throw new ResourceNotFoundException("This post does not apply to the user "+ name);
     }}
     public void deleteById(Long postId, String name) {
-        if (authenticationUserCheckById(postId, name)) {
-            activityRepository.delete(activityRepository.findByPostId(postId).orElseThrow(null));
-          log.info("activity deleted postId "+postId);
+        if (postRepository.existsByIdAndUserId(postId, getUser(name).getId())) {
+            //  activityRepository.delete(activityRepository.findByPostId(postId).orElseThrow(null));
+          //log.info("activity deleted postId "+postId);
             Post post = getPost(postId);
             postRepository.delete(post);
             log.info("post deleted postId "+postId);
@@ -98,11 +95,23 @@ public class PostService {
         Post post = getPost(id);
         return postMapper.toDto(post);
     }
-    private boolean authenticationUserCheckById(Long postId,String name) {
+    public List<PostDto> getAllUsersSubscriptionActivities(String name,
+                                                          int pageNo,
+                                                          int pageSize,
+                                                          SortType sortType,
+                                                          PostSortBy postSort) {
         User user = getUser(name);
-        Post post = getPost(postId);
-        return post.getUser().getId().equals(user.getId());
+        List<FriendRequest> friends = friendRepository.findAllReceiverBySenderId(user.getId());
+        List<Long> receiverIds = friends.stream()
+                .map(friend -> friend.getReceiver().getId())
+                .toList();
+        Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        Page<Post> pagePost = postRepository.findAllByUserIdInOrderByCreatedAtDesc(receiverIds, pageable);
+        List<Post> posts = pagePost.toList();
+        return postMapper.toDtoList(posts);
     }
+
     private User getUser(String userName){
         return  userRepository.findByEmail(userName).orElseThrow(() ->{
             log.error("User not found name "+ userName);
@@ -115,14 +124,14 @@ public class PostService {
             throw new ResourceNotFoundException("Post not found id "+ postId);
         });
     }
-
-    /**
+/*
+    *//**
      * Create activity for post
      * Status type: POST_CREATED, POST_UPDATED
      * @param post
      * @param user
      * @param type
-     */
+     *//*
     private void saveActivityPost(Post post, User user, ActivityType type) {
         Activity activity = new Activity();
         activity.setUser(user);
@@ -131,4 +140,9 @@ public class PostService {
         activity.setType(type);
         activityRepository.save(activity);
     }
+    private boolean authenticationUserCheckById1(Long postId,String name) {
+        User user = getUser(name);
+        Post post = getPost(postId);
+        return post.getUser().getId().equals(user.getId());
+    }*/
 }

@@ -1,15 +1,10 @@
 package com.boris.business.model.enums.sort;
 
-public enum PostSortBy {
-    ID("id"),
-    CONTENT("content"),
-    DESCRIPTION("description"),
-    TITLE("title"),
+public enum MessageSortBy {
     CREATED_AT("createdAt");
-
     private final String attribute;
 
-    PostSortBy(String attribute) {
+      MessageSortBy(String attribute) {
         this.attribute = attribute;
     }
 

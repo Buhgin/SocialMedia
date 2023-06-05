@@ -1,6 +1,4 @@
 package com.boris.business.model.dto;
-
-import com.boris.dao.entity.FriendRequest;
 import com.boris.dao.enums.RequestStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 

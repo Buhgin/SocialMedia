@@ -2,7 +2,6 @@ package com.boris.business.model.request;
 
 import com.boris.business.model.dto.AuthDetailsDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 
 public record TokenCreateRequest(

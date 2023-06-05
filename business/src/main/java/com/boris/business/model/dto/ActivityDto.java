@@ -1,6 +1,6 @@
 package com.boris.business.model.dto;
 
-import com.boris.dao.entity.*;
+import com.boris.dao.enums.ActivityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -11,7 +11,7 @@ public record ActivityDto(
         @Schema(example = "User")
         UserDto user,
         @Schema(example = "ActivityType")
-        Activity.ActivityType type,
+        ActivityType type,
         @Schema(example = "Post")
         PostDto post,
 

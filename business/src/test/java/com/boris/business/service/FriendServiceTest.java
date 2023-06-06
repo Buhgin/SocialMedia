@@ -3,6 +3,7 @@ package com.boris.business.service;
 import com.boris.business.mapper.dto.FriendRequestMapper;
 import com.boris.business.model.dto.FriendRequestDto;
 import com.boris.business.model.dto.UserDto;
+import com.boris.business.model.request.FriendCreateRequest;
 import com.boris.dao.entity.FriendRequest;
 import com.boris.dao.entity.User;
 import com.boris.dao.enums.RequestStatus;
@@ -28,11 +29,13 @@ public class FriendServiceTest {
     private UserRepository userRepository;
     @Mock
     private FriendRequestMapper friendRequestMapper;
+    @Captor
+    private ArgumentCaptor<FriendRequest> friendRequestArgumentCaptor;
     @InjectMocks
     private FriendService friendService;
 
-    private User userSender;
-    private User userReceiver;
+    private User userSender, userReceiver;
+
     private FriendRequest friendRequest,friendRequestAccepted;
     private FriendRequestDto friendRequestDto, friendRequestDtoAccepted;
     private UserDto userDtoSender, userDtoReceiver;
@@ -44,10 +47,12 @@ public class FriendServiceTest {
         userSender = new User();
         userSender.setId(1L);
         userSender.setUsername("sender");
+        userSender.setEmail("sender@email.ru");
 
         userReceiver = new User();
         userReceiver.setId(2L);
         userReceiver.setUsername("receiver");
+        userReceiver.setEmail("receiver@email.ru");
         userDtoSender = new UserDto(userSender.getUsername(), userSender.getEmail());
         userDtoReceiver = new UserDto(userReceiver.getUsername(), userReceiver.getEmail());
 
@@ -178,28 +183,109 @@ public class FriendServiceTest {
         verify(friendRequestMapper, times(1)).toDto(friendRequest);
     }
 
-  /*  @Test
+    @Test
     public void acceptFriendRequest() {
-        FriendCreateRequest friendCreateRequest = new FriendCreateRequest(userReceiver.getId(), true);
-        when(userRepository.findByEmail(userSender.getEmail())).thenReturn(Optional.of(userSender));
-        when(friendRepository.findBySenderIdAndReceiverId(userReceiver.getId(), userSender.getId()))
-                .thenReturn(Optional.of(friendRequest));
-             friendRequest.setStatus(RequestStatus.ACCEPTED);
 
-        when(friendRepository.save(friendRequest)).thenAnswer(invocation -> {
-            FriendRequest fr = (FriendRequest) invocation.getArguments()[0];
-            Assertions.assertEquals(RequestStatus.ACCEPTED, fr.getStatus());
-             return fr;
+        Long receiverId = friendRequest.getReceiver().getId();
+        Long senderId = userSender.getId();
+        FriendCreateRequest friendCreateRequest = new FriendCreateRequest(receiverId, true);
+
+        when(userRepository.findByEmail(userSender.getEmail())).thenReturn(Optional.of(userSender));
+        when(friendRepository.findBySenderIdAndReceiverId(receiverId, senderId)).thenReturn(Optional.of(friendRequest));
+        when(friendRepository.findBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(Optional.of(friendRequest));
+        when(friendRequestMapper.toDto(any(FriendRequest.class))).thenAnswer(invocation -> {
+            FriendRequest argumentFriendRequest = (FriendRequest) invocation.getArgument(0);
+            if (argumentFriendRequest.getStatus() == RequestStatus.ACCEPTED) {
+                return friendRequestDtoAccepted;
+            } else {
+                return friendRequestDto;
+            }
         });
 
         FriendRequestDto actual = friendService.acceptFriendRequest(friendCreateRequest, userSender.getEmail());
-        System.out.println(actual.status());
-        Assertions.assertEquals(friendRequestDtoAccepted, actual);
-        verify(friendRepository, times(2)).save(any(FriendRequest.class));
-        verify(friendRequestMapper, times(1)).toDto(any(FriendRequest.class));
-    }*/
 
+
+        verify(friendRepository, times(2)).save(friendRequestArgumentCaptor.capture());
+        FriendRequest savedFriendRequest1 = friendRequestArgumentCaptor.getAllValues().get(0);
+        FriendRequest savedFriendRequest2 = friendRequestArgumentCaptor.getAllValues().get(1);
+        Assertions.assertEquals(friendRequestDtoAccepted, actual);
+        Assertions.assertEquals(RequestStatus.ACCEPTED, savedFriendRequest1.getStatus());
+        Assertions.assertEquals(RequestStatus.ACCEPTED, savedFriendRequest2.getStatus());
+        Assertions.assertEquals(receiverId, savedFriendRequest1.getReceiver().getId());
+        Assertions.assertEquals(senderId, savedFriendRequest1.getSender().getId());
+
+    }
+    @Test
+    public void acceptFriendRequestWithNonExistingFriendRequest() {
+
+        Long receiverId = friendRequest.getReceiver().getId();
+        Long senderId = userSender.getId();
+        FriendCreateRequest friendCreateRequest = new FriendCreateRequest(receiverId, true);
+
+        when(userRepository.findByEmail(userSender.getEmail())).thenReturn(Optional.of(userSender));
+        when(friendRepository.findBySenderIdAndReceiverId(receiverId, senderId)).thenReturn(Optional.of(friendRequest));
+        when(friendRepository.findBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(Optional.empty());
+        when(friendRequestMapper.toDto(any(FriendRequest.class))).thenAnswer(invocation -> {
+            FriendRequest argumentFriendRequest = (FriendRequest) invocation.getArgument(0);
+            if (argumentFriendRequest.getStatus() == RequestStatus.ACCEPTED) {
+                return friendRequestDtoAccepted;
+            } else {
+                return friendRequestDto;
+            }
+        });
+        FriendRequestDto actual = friendService.acceptFriendRequest(friendCreateRequest, userSender.getEmail());
+
+
+        verify(friendRepository, times(2)).save(friendRequestArgumentCaptor.capture());
+        List<FriendRequest> capturedFriendRequests = friendRequestArgumentCaptor.getAllValues();
+        FriendRequest savedFriendRequest1 = capturedFriendRequests.get(0);
+        FriendRequest savedFriendRequest2 = capturedFriendRequests.get(1);
+        Assertions.assertEquals(RequestStatus.ACCEPTED, savedFriendRequest1.getStatus());
+        Assertions.assertEquals(RequestStatus.ACCEPTED, savedFriendRequest2.getStatus());
+        Assertions.assertEquals(receiverId, savedFriendRequest1.getReceiver().getId());
+        Assertions.assertEquals(senderId, savedFriendRequest1.getSender().getId());
+        Assertions.assertEquals(friendRequestDtoAccepted, actual);
+    }
+    @Test
+    public void deleteFriendRequestWithNonExistingFriendRequest() {
+
+        Long receiverId = friendRequest.getReceiver().getId();
+        Long senderId = userSender.getId();
+
+        when(userRepository.findByEmail(userSender.getEmail())).thenReturn(Optional.of(userSender));
+        when(friendRepository.findBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(Optional.of(friendRequest));
+        when(friendRepository.findBySenderIdAndReceiverId(receiverId, senderId)).thenReturn(Optional.empty()); // Existing request is not present
+
+        // Act
+        friendService.deleteFriendRequest(receiverId, userSender.getEmail());
+
+        // Assert
+        verify(friendRepository, times(1)).delete(friendRequestArgumentCaptor.capture());
+        FriendRequest deletedFriendRequest = friendRequestArgumentCaptor.getValue();
+        Assertions.assertEquals(receiverId, deletedFriendRequest.getReceiver().getId());
+        Assertions.assertEquals(senderId, deletedFriendRequest.getSender().getId());
+    }
     @Test
     public void deleteFriendRequest() {
+
+            Long receiverId = friendRequest.getReceiver().getId();
+            Long senderId = userSender.getId();
+
+            when(userRepository.findByEmail(userSender.getEmail())).thenReturn(Optional.of(userSender));
+            when(friendRepository.findBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(Optional.of(friendRequest));
+            when(friendRepository.findBySenderIdAndReceiverId(receiverId, senderId)).thenReturn(Optional.of(friendRequest));
+
+            // Act
+            friendService.deleteFriendRequest(receiverId, userSender.getEmail());
+
+            // Assert
+        verify(friendRepository, times(1)).save(friendRequestArgumentCaptor.capture());
+        verify(friendRepository, times(1)).delete(friendRequestArgumentCaptor.capture());
+        FriendRequest updatedFriendRequest = friendRequestArgumentCaptor.getAllValues().get(0);
+        FriendRequest deletedFriendRequest = friendRequestArgumentCaptor.getAllValues().get(1);
+        Assertions.assertEquals(RequestStatus.DECLINED, updatedFriendRequest.getStatus());
+        Assertions.assertEquals(receiverId, deletedFriendRequest.getReceiver().getId());
+        Assertions.assertEquals(senderId, deletedFriendRequest.getSender().getId());
+
     }
 }

@@ -33,6 +33,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 @RunWith(MockitoJUnitRunner.class)
 public class PostServiceTest {
     private static final String userName = "testUser";
@@ -40,12 +41,14 @@ public class PostServiceTest {
     private static final int pageSize = 10;
     private static final SortType sortType = SortType.DESC;
     private static final PostSortBy postSort = PostSortBy.CREATED_AT;
+    private static final Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
+    private static final Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
     private PostCreateRequest postCreateRequest;
     private User user;
-    private Post post;
+    private Post post, post2;
     private UserDto userDto;
-    private PostDto postDto;
+    private PostDto postDto,postDto2;
 
 
     @Mock
@@ -68,23 +71,25 @@ public class PostServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
         postCreateRequest = new PostCreateRequest("test title", "test description",
                 "test image url", "test content");
         user = mock(User.class);
         post = mock(Post.class);
+        post2 = mock(Post.class);
         post.setUser(user);
         post.setId(1L);
         post.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-        userDto = new UserDto("testUser", "test@ya.ru");
-        postDto = new PostDto(1L, "test description",
-                "test image url", "test content", userDto, post.getCreatedAt());
+        userDto = mock(UserDto.class);// new UserDto("testUser", "test@ya.ru");
+        postDto =mock(PostDto.class); //new PostDto(1L, "test description", "test image url", "test content", userDto, post.getCreatedAt());
+        postDto2 = mock(PostDto.class);
+        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
     }
 
     @Test
     void testCreate() {
         Post post = new Post();
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(postCreateMapper.toEntity(postCreateRequest)).thenReturn(post);
         when(postRepository.save(any(Post.class))).then(returnsFirstArg());
 
@@ -113,8 +118,6 @@ public class PostServiceTest {
         newPost.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         PostDto expectedPostDto = new PostDto(post.getId(), "test description", "test image url", "test content", userDto, newPost.getCreatedAt());
 
-        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(postRepository.existsByIdAndUserId(post.getId(), user.getId())).thenReturn(true);
         when(postCreateMapper.toEntity(postCreateRequest)).thenReturn(newPost);
         when(postRepository.save(any(Post.class))).then(returnsFirstArg());
@@ -135,7 +138,6 @@ public class PostServiceTest {
 
     @Test
     public void update_shouldThrowExceptionAndNotSavePost_whenPostDoesNotBelongToUser() {
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(postRepository.existsByIdAndUserId(post.getId(), user.getId())).thenReturn(false);
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
@@ -153,20 +155,16 @@ public class PostServiceTest {
 
     @Test
     public void deleteById() {
-        Long postId = 1L;
-        String userName = "testUser";
 
-        User user = mock(User.class);
         when(user.getId()).thenReturn(2L);
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
-        when(postRepository.existsByIdAndUserId(postId, user.getId())).thenReturn(true);
+        when(postRepository.existsByIdAndUserId(post.getId(), user.getId())).thenReturn(true);
 
-        Post post = mock(Post.class);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-
-        postService.deleteById(postId, userName);
+        postService.deleteById(post.getId(), userName);
 
         verify(postRepository, times(1)).delete(post);
+        verify(postRepository, times(1)).existsByIdAndUserId(post.getId(), user.getId());
+        verify(userRepository, times(1)).findByEmail(userName);
+
     }
 
     @Test
@@ -174,7 +172,7 @@ public class PostServiceTest {
 
         User user = mock(User.class);
         when(user.getId()).thenReturn(2L);
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
+
         when(postRepository.existsByIdAndUserId(post.getId(), user.getId())).thenReturn(false);
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
@@ -220,9 +218,6 @@ public class PostServiceTest {
         when(user.getId()).thenReturn(1L);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
         Set<Post> postSet = new HashSet<>();
         postSet.add(post);
         Page<Post> postPage = new PageImpl<>(new ArrayList<>(postSet), pageable, postSet.size());
@@ -252,12 +247,9 @@ public class PostServiceTest {
     @Test
     public void getAllUsersSubscriptionActivities() {
         List<FriendRequest> friendList = new ArrayList<>();
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(user.getId()).thenReturn(1L);
         when(friendRepository.findAllReceiverBySenderId(1L)).thenReturn(friendList);
 
-        Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         List<Post> postList = new ArrayList<>();
         postList.add(post);
@@ -278,11 +270,7 @@ public class PostServiceTest {
     @Test
     public void getAllUsersSubscriptionActivities_shouldReturnEmptyList_whenUserHasNoSubscriptions() {
 
-        when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(friendRepository.findAllReceiverBySenderId(user.getId())).thenReturn(Collections.emptyList());
-
-        Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         when(postRepository.findAllByUserIdInOrderByCreatedAtDesc(any(), any()))
                 .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
@@ -299,22 +287,14 @@ public class PostServiceTest {
     public void getByUserId_withMultiplePosts() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
-        Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
-        Post post1 = mock(Post.class);
-        Post post2 = mock(Post.class);
-
         Set<Post> postSet = new HashSet<>();
-        postSet.add(post1);
+        postSet.add(post);
         postSet.add(post2);
 
         Page<Post> postPage = new PageImpl<>(new ArrayList<>(postSet), pageable, postSet.size());
 
-        PostDto postDto1 = mock(PostDto.class);
-        PostDto postDto2 = mock(PostDto.class);
         Set<PostDto> expectedPostDtoSet = new HashSet<>();
-        expectedPostDtoSet.add(postDto1);
+        expectedPostDtoSet.add(postDto);
         expectedPostDtoSet.add(postDto2);
         when(postRepository.findByUserId(eq(user.getId()), any(Pageable.class))).thenReturn(postPage);
         when(postMapper.toDtoSet(postSet)).thenReturn(expectedPostDtoSet);

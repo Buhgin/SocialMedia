@@ -12,6 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+
 @Table(name = "friend_requests")
 public class FriendRequest {
     @Id

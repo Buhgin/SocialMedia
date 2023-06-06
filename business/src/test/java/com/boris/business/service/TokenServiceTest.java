@@ -10,7 +10,10 @@ import com.boris.dao.repository.TokenRepository;
 import com.boris.dao.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -20,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-
+@RunWith(MockitoJUnitRunner.class)
 public class TokenServiceTest {
 
     private TokenCreateRequest tokenCreateRequest;

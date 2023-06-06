@@ -75,8 +75,6 @@ public class FriendService {
         return new HashSet<>();
     }
 
-
-
     public Set<FriendRequestDto> acceptFriendAllRequests(String receiverName) {
         User user = getUser(receiverName);
         List<FriendRequest> friendRequests = friendRepository.findAllByReceiverIdAndStatus(
@@ -97,12 +95,14 @@ public class FriendService {
 
     public FriendRequestDto acceptFriendRequest(FriendCreateRequest friendCreateRequest, String senderName) {
         User user = getUser(senderName);
+
         FriendRequest friendRequest = friendRepository.findBySenderIdAndReceiverId(
                         friendCreateRequest.userReceiverId(), user.getId())
                 .orElseThrow(() -> {
-                    log.info("No friend request found for user with ID= {}", friendCreateRequest.userReceiverId());
+                    log.info("No friend request found for user with ID= '{}'", friendCreateRequest.userReceiverId());
                     return new RuntimeException("No friend requests");
                 });
+
         if (friendCreateRequest.accept()) {
             friendRequest.setStatus(RequestStatus.ACCEPTED);
             createFriend(friendRequest);
@@ -162,10 +162,10 @@ public class FriendService {
         }
     }
 
-    private User getUser(String name) {
-        return userRepository.findByEmail(name).orElseThrow(() -> {
-            log.error("User with name={} not found", name);
-            throw new RuntimeException("User not found" + name);
+    private User getUser(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> {
+            log.error("User with name={} not found", email);
+            throw new RuntimeException("User not found" + email);
         });
 
     }

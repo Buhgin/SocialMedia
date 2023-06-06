@@ -49,11 +49,11 @@ public MessageDto createMessage(MessageCreateRequest messageCreateRequest, Strin
                 message.setReceiver(friendStatus.get().getReceiver());
                 message.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
                 messageRepository.save(message);
-                log.info("Creating new message for the user {}", friendStatus.get().getReceiver().getUsername());
+                log.info("Creating new message with text = '{}' and the receiverId = '{}' for the user = '{}', ",messageCreateRequest.text(),messageCreateRequest.receiverId(), friendStatus.get().getReceiver().getUsername());
                 return messageMapper.toDto(message);
         }
-        log.error("The user {} does not have a friend id{}", username, messageCreateRequest.receiverId());
-      throw new RuntimeException("The user " + username + " does not have a friend with id " + messageCreateRequest.receiverId());
+        log.error("The user = '{}' does not have a friend id = '{}'", username, messageCreateRequest.receiverId());
+      throw new RuntimeException("The user = " + username + " does not have a friend with id = " + messageCreateRequest.receiverId());
 }
 public List<MessageDto> getChatMessage(String username,
                                        Long receiverFriendId,
@@ -67,7 +67,7 @@ public List<MessageDto> getChatMessage(String username,
         Page<Message> messages = messageRepository.findAll(
                 MessageSpecifications.findBySenderIdAndReceiverId(senderUser.getId(), receiverFriendId),
                 pageable);
-        log.info("Getting chat messages for the user {}", senderUser.getUsername());
+        log.info("Getting chat messages for the user = '{}'", senderUser.getUsername());
         return messageMapper.toDtoList(messages.getContent());
 }
         private User getUser(String userName){

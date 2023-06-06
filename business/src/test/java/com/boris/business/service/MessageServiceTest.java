@@ -6,6 +6,7 @@ import com.boris.business.mapper.request.MessageCreateMapper;
 import com.boris.business.model.dto.MessageDto;
 import com.boris.business.model.dto.UserDto;
 import com.boris.business.model.enums.sort.MessageSortBy;
+import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.MessageCreateRequest;
 import com.boris.dao.entity.FriendRequest;
@@ -33,15 +34,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class MessageServiceTest {
+
     private User user;
     private Message message;
-    private UserDto userDto;
     private MessageDto messageDto;
-    private String userName;
-    private int pageNo;
-    private int pageSize;
-    private SortType sortType;
-    private MessageSortBy messageSortBy;
+    private static final String userName = "testUser";
+    private static final int pageNo = 0;
+    private static final int pageSize = 10;
+    private static final SortType sortType = SortType.DESC;
+    private static final MessageSortBy messageSortBy = MessageSortBy.CREATED_AT;
+
 
     @Mock
     private MessageRepository messageRepository;
@@ -65,12 +67,7 @@ public class MessageServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        pageNo = 0;
-        pageSize = 10;
-        sortType = SortType.DESC;
-        messageSortBy = MessageSortBy.CREATED_AT;
         user = mock(User.class);
-        userName = "testUser";
         message = mock(Message.class);
         messageCreateRequest = new MessageCreateRequest(1L, "test message");
         message.setSender(user);
@@ -122,7 +119,7 @@ public class MessageServiceTest {
     }
 
     @Test
-    public void createMessage_shouldThrowRuntimeException_whenFriendStatusIsNotPresent() {
+    public void createMessageShouldThrowRuntimeExceptionWhenFriendStatusIsNotPresent() {
         MessageCreateRequest messageCreateRequest = new MessageCreateRequest(1L, "test message");
         when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(friendRepository.findBySenderIdAndReceiverIdAndStatus(user.getId(), messageCreateRequest.receiverId(), RequestStatus.ACCEPTED)).thenReturn(Optional.empty());
@@ -130,7 +127,7 @@ public class MessageServiceTest {
         Exception exception = assertThrows(RuntimeException.class, () ->
                 messageService.createMessage(messageCreateRequest, userName));
 
-        String expectedMessage = "The user " + userName + " does not have a friend with id " + messageCreateRequest.receiverId();
+        String expectedMessage = "The user = " + userName + " does not have a friend with id = " + messageCreateRequest.receiverId();
         String actualMessage = exception.getMessage();
         Assertions.assertTrue(actualMessage.contains(expectedMessage));
         verify(messageRepository, times(0)).save(any(Message.class));

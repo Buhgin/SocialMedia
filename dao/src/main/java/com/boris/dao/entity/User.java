@@ -1,7 +1,6 @@
 package com.boris.dao.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,8 +31,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Activity> activities;
+
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
     private List<FriendRequest> sentFriendRequests;
 

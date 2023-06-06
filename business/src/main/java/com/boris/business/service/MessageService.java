@@ -42,7 +42,8 @@ public MessageDto createMessage(MessageCreateRequest messageCreateRequest, Strin
         Optional<FriendRequest> friendStatus = friendRepository.findBySenderIdAndReceiverIdAndStatus(
                 getUser(username).getId(),
                 messageCreateRequest.receiverId(),
-                RequestStatus.ACCEPTED);
+                RequestStatus.ACCEPTED
+        );
         if (friendStatus.isPresent()) {
                 Message message = messageCreateMapper.toEntity(messageCreateRequest);
                 message.setSender(getUser(username));
@@ -72,7 +73,7 @@ public List<MessageDto> getChatMessage(String username,
 }
         private User getUser(String userName){
                 return  userRepository.findByEmail(userName).orElseThrow(() ->{
-                        log.error("User not found name "+ userName);
+                        log.error("User not found name = '{}'", userName);
                         throw new ResourceNotFoundException("User not found name "+ userName);
                 });
         }

@@ -2,7 +2,6 @@ package com.boris.controller;
 
 import com.boris.business.model.dto.MessageDto;
 import com.boris.business.model.enums.sort.MessageSortBy;
-import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.MessageCreateRequest;
 import com.boris.business.service.MessageService;

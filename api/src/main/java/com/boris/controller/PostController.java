@@ -1,11 +1,9 @@
 package com.boris.controller;
 
 import com.boris.business.model.dto.PostDto;
-import com.boris.business.model.enums.sort.ActivitySort;
 import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.PostCreateRequest;
-import com.boris.business.service.ActivityService;
 import com.boris.business.service.PostService;
 import com.boris.model.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +31,7 @@ import static com.boris.util.UserSession.getCurrentUserName;
 @Tag(name = "Post", description = "Post related resource")
 public class PostController {
     private final PostService postService;
-    private final ActivityService activityService;
+
 
     @PostMapping("users/{userId}")
     @Operation(summary = "Create post", description = "Creating post and unique identifier assigning. Follows model's " +

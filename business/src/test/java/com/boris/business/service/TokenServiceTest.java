@@ -13,12 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -88,7 +86,7 @@ public class TokenServiceTest {
     }
 
     @Test
-    public void saveUserToken_whenUserNotFound() {
+    public void saveUserTokenWhenUserNotFound() {
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
@@ -119,7 +117,7 @@ public class TokenServiceTest {
     }
 
     @Test
-    public void revokeAllUserTokens_whenUserNotFound() {
+    public void revokeAllUserTokensWhenUserNotFound() {
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 

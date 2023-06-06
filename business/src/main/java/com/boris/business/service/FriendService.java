@@ -1,6 +1,5 @@
 package com.boris.business.service;
 
-import com.boris.business.exception.ResourceNotFoundException;
 import com.boris.business.mapper.dto.FriendRequestMapper;
 import com.boris.business.model.dto.FriendRequestDto;
 import com.boris.business.model.request.FriendCreateRequest;
@@ -41,9 +40,9 @@ public class FriendService {
             friendRequest.setReceiver(userReceiver);
             friendRequest.setStatus(RequestStatus.PENDING);
             friendRepository.save(friendRequest);
-            log.info("Creating new friend");
+            log.info("friend request created from user id ='{}' for user id = '{}'", userSender.getId(), userReceiverId);
         }
-        log.info("Friend already exists");
+        log.info("FriendRequest already exists userSender id ='{}' for userReceiver id = '{}'", userSender.getId(), userReceiverId);
         return friendRequestMapper.toDto(friendRepository.findBySenderIdAndReceiverId(userSender.getId(), userReceiverId).orElseThrow(() -> {
             log.error("Friend not found");
             throw new RuntimeException("Friend not found");
@@ -54,6 +53,7 @@ public class FriendService {
         List<FriendRequest> allByReceiverId = friendRepository.findAllByReceiverIdAndStatus(
                 getUser(userReceiver).getId(), RequestStatus.PENDING);
         if (allByReceiverId.size() != 0) {
+            log.info("Friend requests with status PENDING found for userReceiver id ='{}'", getUser(userReceiver).getId());
             return allByReceiverId.stream()
                     .map(friendRequestMapper::toDto)
                     .collect(Collectors.toSet());
@@ -67,6 +67,7 @@ public class FriendService {
         List<FriendRequest> allByReceiverId = friendRepository.findAllByReceiverIdAndStatus(
                 user.getId(), RequestStatus.ACCEPTED);
         if (allByReceiverId.size() != 0) {
+            log.info("Friend requests with status ACCEPTED found for userReceiver id ='{}'", user.getId());
             return allByReceiverId.stream()
                     .map(friendRequestMapper::toDto)
                     .collect(Collectors.toSet());
@@ -85,7 +86,7 @@ public class FriendService {
                         friendRequest.setStatus( RequestStatus.ACCEPTED);
                         friendRepository.save(friendRequest);
                         createFriend(friendRequest);
-                        log.info("Friend request accepted from" + friendRequest.getReceiver().getUsername());
+                        log.info("Friend request accepted from userName ='{}'", friendRequest.getReceiver().getUsername());
                     }).map(friendRequestMapper::toDto)
                     .collect(Collectors.toSet());
         }
@@ -99,7 +100,7 @@ public class FriendService {
         FriendRequest friendRequest = friendRepository.findBySenderIdAndReceiverId(
                         friendCreateRequest.userReceiverId(), user.getId())
                 .orElseThrow(() -> {
-                    log.info("No friend request found for user with ID= '{}'", friendCreateRequest.userReceiverId());
+                    log.error("No friend request found for user with ID= '{}'", friendCreateRequest.userReceiverId());
                     return new RuntimeException("No friend requests");
                 });
 
@@ -107,11 +108,15 @@ public class FriendService {
             friendRequest.setStatus(RequestStatus.ACCEPTED);
             createFriend(friendRequest);
             friendRepository.save(friendRequest);
-            log.info("Friend request accepted from" + friendRequest.getReceiver().getUsername());
+            log.info("Friend Request accepted by user id ='{}' from user id='{}'",
+                  user.getId(),
+                    friendRequest.getReceiver().getId());
         } else {
             friendRequest.setStatus(RequestStatus.DECLINED);
             friendRepository.save(friendRequest);
-            log.info("Friend request declined from" + friendRequest.getReceiver().getUsername());
+            log.info("Friend Request declined by user id ='{}' from user id='{}'",
+                    user.getId(),
+                    friendRequest.getReceiver().getId());
         }
 
         return friendRequestMapper.toDto(friendRequest);
@@ -122,12 +127,14 @@ public class FriendService {
         FriendRequest friendRequest = friendRepository.findBySenderIdAndReceiverId(
                         user.getId(), userReceiverId)
                 .orElseThrow(() -> {
-                    log.info("No friend requests");
+                    log.error("No friend requests");
                     return new RuntimeException("No friend requests");
                 });
         deleteFriend(friendRequest);
         friendRepository.delete(friendRequest);
-        log.info("Friend request deleted from" + friendRequest.getReceiver().getUsername());
+        log.info("Friend request deleted by user id ='{}' from user id='{}'",
+                user.getId(),
+                userReceiverId);
     }
 
     private void createFriend(FriendRequest friendRequest) {
@@ -137,7 +144,9 @@ public class FriendService {
 
         if (existingFriendRequest.isPresent()) {
             FriendRequest friend = existingFriendRequest.get();
-            log.info("Friend already exists with status ACCEPTED");
+            log.info(" Friend request from user id = '{}' for user id = '{}' has been updated to ACCEPTED status",
+                    friendRequest.getReceiver().getId(),
+                    friendRequest.getSender().getId());
             friend.setStatus(RequestStatus.ACCEPTED);
             friendRepository.save(friend);
         } else {
@@ -146,7 +155,9 @@ public class FriendService {
             newFriendRequest.setReceiver(friendRequest.getSender());
             newFriendRequest.setStatus(RequestStatus.ACCEPTED);
             friendRepository.save(newFriendRequest);
-            log.info("New friend request created with status ACCEPTED");
+            log.info("created a new friendRequest from user id = '{}' for user id = '{}' with status ACCEPTED",
+                    friendRequest.getReceiver().getId(),
+                    friendRequest.getSender().getId());
         }
     }
     private void deleteFriend(FriendRequest friendRequest) {
@@ -155,7 +166,9 @@ public class FriendService {
                         friendRequest.getSender().getId());
 
         if (existingFriendRequest.isPresent()) {
-            log.info("The friend's status will be changed to DECLINED");
+            log.info("Friend request status from user with id = '{}' to user with id = '{}' has been changed to DECLINED",
+                    friendRequest.getReceiver().getId(),
+                    friendRequest.getSender().getId());
             FriendRequest friend = existingFriendRequest.get();
             friend.setStatus(RequestStatus.DECLINED);
             friendRepository.save(friend);

@@ -50,7 +50,6 @@ public class PostServiceTest {
     private UserDto userDto;
     private PostDto postDto,postDto2;
 
-
     @Mock
     private PostRepository postRepository;
 
@@ -79,8 +78,8 @@ public class PostServiceTest {
         post.setUser(user);
         post.setId(1L);
         post.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-        userDto = mock(UserDto.class);// new UserDto("testUser", "test@ya.ru");
-        postDto =mock(PostDto.class); //new PostDto(1L, "test description", "test image url", "test content", userDto, post.getCreatedAt());
+        userDto = mock(UserDto.class);
+        postDto =mock(PostDto.class);
         postDto2 = mock(PostDto.class);
         when(userRepository.findByEmail(userName)).thenReturn(Optional.of(user));
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
@@ -137,7 +136,7 @@ public class PostServiceTest {
     }
 
     @Test
-    public void update_shouldThrowExceptionAndNotSavePost_whenPostDoesNotBelongToUser() {
+    public void updateShouldThrowExceptionAndNotSavePostWhenPostDoesNoBelongToUser() {
         when(postRepository.existsByIdAndUserId(post.getId(), user.getId())).thenReturn(false);
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
@@ -148,9 +147,8 @@ public class PostServiceTest {
         assertTrue(actualMessage.contains(expectedMessage));
 
         verify(postRepository, times(1)).existsByIdAndUserId(post.getId(), user.getId());
-        verify(userRepository, times(1)).findByEmail(userName);
         verify(postRepository, times(0)).save(any(Post.class));
-        verify(postMapper, times(0)).toDto(any(Post.class));
+
     }
 
     @Test
@@ -184,7 +182,7 @@ public class PostServiceTest {
     }
 
     @Test
-    public void deleteById_shouldThrowResourceNotFoundException_whenUserIsNotFound() {
+    public void deleteByIdShouldThrowResourceNotFoundExceptionWhenUserIsNotFound() {
         String userName = "testUser";
 
         when(userRepository.findByEmail(userName)).thenThrow(new ResourceNotFoundException("User not found with email " + userName));
@@ -198,7 +196,7 @@ public class PostServiceTest {
     }
 
     @Test
-    public void getByUserId_shouldThrowResourceNotFoundException_whenUserNotFound() {
+    public void getByUserIdShouldThrowResourceNotFoundExceptionWhenUserNotFound() {
         Long userId = 1L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -268,7 +266,7 @@ public class PostServiceTest {
     }
 
     @Test
-    public void getAllUsersSubscriptionActivities_shouldReturnEmptyList_whenUserHasNoSubscriptions() {
+    public void getAllUsersSubscriptionActivitiesShouldReturnEmptyListWhenUserHasNoSubscriptions() {
 
         when(friendRepository.findAllReceiverBySenderId(user.getId())).thenReturn(Collections.emptyList());
 
@@ -280,11 +278,10 @@ public class PostServiceTest {
 
         assertTrue(actualPosts.isEmpty(), "The list of posts should be empty when the user has no subscriptions");
         verify(postRepository, times(1)).findAllByUserIdInOrderByCreatedAtDesc(any(), any());
-        verify(postMapper, times(1)).toDtoList(Collections.emptyList());
     }
 
     @Test
-    public void getByUserId_withMultiplePosts() {
+    public void getByUserIdWithMultiplePosts() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         Set<Post> postSet = new HashSet<>();

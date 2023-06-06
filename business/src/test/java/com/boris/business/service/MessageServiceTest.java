@@ -6,7 +6,6 @@ import com.boris.business.mapper.request.MessageCreateMapper;
 import com.boris.business.model.dto.MessageDto;
 import com.boris.business.model.dto.UserDto;
 import com.boris.business.model.enums.sort.MessageSortBy;
-import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.MessageCreateRequest;
 import com.boris.dao.entity.FriendRequest;
@@ -19,9 +18,11 @@ import com.boris.dao.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -32,7 +33,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
+@RunWith(MockitoJUnitRunner.class)
 public class MessageServiceTest {
 
     private User user;
@@ -82,7 +83,7 @@ public class MessageServiceTest {
     }
 
     @Test
-    public void createMessage_shouldCreateMessageSuccessfully_whenUserExistsAndFriendStatusIsPresent() {
+    public void createMessageShouldCreateMessageSuccessfullyWhenUserExistsAndFriendStatusIsPresent() {
         MessageCreateRequest messageCreateRequest = new MessageCreateRequest(1L, "test message");
         FriendRequest friendRequest = new FriendRequest();
         friendRequest.setReceiver(user);
@@ -104,7 +105,7 @@ public class MessageServiceTest {
     }
 
     @Test
-    public void createMessage_shouldThrowResourceNotFoundException_whenUserNotFound() {
+    public void createMessageShouldThrowResourceNotFoundExceptionWhenUserNotFound() {
 
         MessageCreateRequest messageCreateRequest = new MessageCreateRequest(1L, "test message");
         when(userRepository.findByEmail(userName)).thenReturn(Optional.empty());
@@ -151,7 +152,7 @@ public class MessageServiceTest {
     }
 
     @Test
-    public void getChatMessage_shouldThrowResourceNotFoundException_whenUserIsNotFound() {
+    public void getChatMessageShouldThrowResourceNotFoundExceptionWhenUserIsNotFound() {
         when(userRepository.findByEmail(userName)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->

@@ -1,6 +1,5 @@
 package com.boris.controller;
 
-import com.boris.business.model.dto.PostDto;
 import com.boris.business.model.request.AccessTokenCreateRequest;
 import com.boris.business.model.request.LoginRequest;
 import com.boris.business.model.request.RegistrationRequest;

@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 @Schema(description = "Provides more specific information about error occurred. " +
         "Messages can be localized to show the user the reason of operation failure")
 public record ApiErrorResponse(
-        @Schema(example = "NOT_FOUND")
+        @Schema(example = "CONFLICT")
         HttpStatus httpStatus,
-        @Schema(example = "Entity not found")
+        @Schema(example = "Entity not found id")
         String message) {
 }

@@ -37,7 +37,7 @@ public class OpenApiConfig {
     private Contact apiContact() {
         return new Contact()
                 .name("Blog api developers")
-                .email("amirboris@gmail.com")
+                .email("boris@gmail.com")
                 .url("https://github.com");
     }
 }

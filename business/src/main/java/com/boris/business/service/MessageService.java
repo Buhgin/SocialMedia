@@ -54,8 +54,9 @@ public MessageDto createMessage(MessageCreateRequest messageCreateRequest, Strin
                 return messageMapper.toDto(message);
         }
         log.error("The user = '{}' does not have a friend id = '{}'", username, messageCreateRequest.receiverId());
-      throw new RuntimeException("The user = " + username + " does not have a friend with id = " + messageCreateRequest.receiverId());
+      throw new ResourceNotFoundException("The user = " + username + " does not have a friend with id = " + messageCreateRequest.receiverId());
 }
+
 public List<MessageDto> getChatMessage(String username,
                                        Long receiverFriendId,
                                        int pageNo,

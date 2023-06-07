@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class MessageController {
             })
     })
 
-    public MessageDto create(MessageCreateRequest messageCreateRequest) {
+    public MessageDto create(@Valid MessageCreateRequest messageCreateRequest) {
         return messageService.createMessage(messageCreateRequest, getCurrentUserName());
     }
 
@@ -53,7 +54,7 @@ public class MessageController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })
-    public List<MessageDto> getChatMessages(Long receiverFriendId,
+    public List<MessageDto> getChatMessages(@PathVariable Long receiverFriendId,
                                             @RequestParam(defaultValue = "0") @PositiveOrZero Integer page,
                                             @RequestParam(defaultValue = "10") @Positive Integer quantity,
                                             @RequestParam(defaultValue = "createdAt") MessageSortBy messageSortBy,

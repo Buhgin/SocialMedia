@@ -3,6 +3,7 @@ package com.boris.business.service;
 import com.boris.business.exception.ResourceNotFoundException;
 import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
+import com.boris.business.model.response.PostResponse;
 import com.boris.dao.entity.FriendRequest;
 import com.boris.dao.repository.FriendRepository;
 import com.boris.business.mapper.dto.PostMapper;
@@ -142,8 +143,9 @@ public class PostServiceTest {
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
                 postService.update(post.getId(), postCreateRequest, userName));
 
-        String expectedMessage = "This post does not apply to the user " + userName;
+        String expectedMessage = "This post does not apply to the user ID = " + user.getId();
         String actualMessage = exception.getMessage();
+        System.out.println(actualMessage);
         assertTrue(actualMessage.contains(expectedMessage));
 
         verify(postRepository, times(1)).existsByIdAndUserId(post.getId(), user.getId());
@@ -169,14 +171,14 @@ public class PostServiceTest {
     public void deleteByIdShouldThrowResourceNotFoundExceptionWhenPostDoesNotBelongsToUser() {
 
         User user = mock(User.class);
-        when(user.getId()).thenReturn(2L);
 
         when(postRepository.existsByIdAndUserId(post.getId(), user.getId())).thenReturn(false);
+
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
                 postService.deleteById(post.getId(), userName));
 
-        String expectedMessage = "This post does not apply to the user " + userName;
+        String expectedMessage = "This post does not apply to the user ID = " + user.getId();
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
@@ -216,20 +218,20 @@ public class PostServiceTest {
         when(user.getId()).thenReturn(1L);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        Set<Post> postSet = new HashSet<>();
-        postSet.add(post);
-        Page<Post> postPage = new PageImpl<>(new ArrayList<>(postSet), pageable, postSet.size());
+        List<Post> postList = new ArrayList<>();
+        postList.add(post);
+        Page<Post> postPage = new PageImpl<>(new ArrayList<>(postList), pageable, postList.size());
         when(postRepository.findByUserId(1L, pageable)).thenReturn(postPage);
         PostDto postDto = mock(PostDto.class);
-        Set<PostDto> expectedPostDtoSet = new HashSet<>();
+       List<PostDto> expectedPostDtoSet = new ArrayList<>();
         expectedPostDtoSet.add(postDto);
-        when(postMapper.toDtoSet(postSet)).thenReturn(expectedPostDtoSet);
+        when(postMapper.toDtoList(postList)).thenReturn(expectedPostDtoSet);
 
-        Set<PostDto> actualPostDtoSet = postService.getByUserId(1L, pageNo, pageSize, sortType, postSort);
+        PostResponse actualPostDtoList = postService.getByUserId(1L, pageNo, pageSize, sortType, postSort);
 
-        assertEquals(expectedPostDtoSet, actualPostDtoSet);
+        assertEquals(expectedPostDtoSet, actualPostDtoList.getContent());
         verify(postRepository, times(1)).findByUserId(1L, pageable);
-        verify(postMapper, times(1)).toDtoSet(postSet);
+
     }
 
     @Test
@@ -258,9 +260,9 @@ public class PostServiceTest {
         expectedPostDto.add(postDto);
         when(postMapper.toDtoList(postList)).thenReturn(expectedPostDto);
 
-        List<PostDto> actualPostDtoSet = postService.getAllUsersSubscriptionActivities(userName, pageNo, pageSize, sortType, postSort);
+        PostResponse actualPostDtoSet = postService.getAllUsersSubscriptionActivities(userName, pageNo, pageSize, sortType, postSort);
 
-        assertEquals(expectedPostDto, actualPostDtoSet);
+        assertEquals(expectedPostDto, actualPostDtoSet.getContent());
         verify(postRepository, times(1)).findAllByUserIdInOrderByCreatedAtDesc(any(), any());
         verify(postMapper, times(1)).toDtoList(postList);
     }
@@ -274,9 +276,9 @@ public class PostServiceTest {
                 .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
         when(postMapper.toDtoList(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        List<PostDto> actualPosts = postService.getAllUsersSubscriptionActivities(userName, pageNo, pageSize, sortType, postSort);
+        PostResponse actualPosts = postService.getAllUsersSubscriptionActivities(userName, pageNo, pageSize, sortType, postSort);
 
-        assertTrue(actualPosts.isEmpty(), "The list of posts should be empty when the user has no subscriptions");
+        assertTrue(actualPosts.getContent().isEmpty(), "The list of posts should be empty when the user has no subscriptions");
         verify(postRepository, times(1)).findAllByUserIdInOrderByCreatedAtDesc(any(), any());
     }
 
@@ -284,22 +286,21 @@ public class PostServiceTest {
     public void getByUserIdWithMultiplePosts() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
-        Set<Post> postSet = new HashSet<>();
-        postSet.add(post);
-        postSet.add(post2);
+        List<Post> postList = new ArrayList<>();
+        postList.add(post);
+        postList.add(post2);
 
-        Page<Post> postPage = new PageImpl<>(new ArrayList<>(postSet), pageable, postSet.size());
+        Page<Post> postPage = new PageImpl<>(new ArrayList<>(postList), pageable, postList.size());
 
-        Set<PostDto> expectedPostDtoSet = new HashSet<>();
+        List<PostDto> expectedPostDtoSet = new ArrayList<>();
         expectedPostDtoSet.add(postDto);
         expectedPostDtoSet.add(postDto2);
         when(postRepository.findByUserId(eq(user.getId()), any(Pageable.class))).thenReturn(postPage);
-        when(postMapper.toDtoSet(postSet)).thenReturn(expectedPostDtoSet);
+        when(postMapper.toDtoList(postList)).thenReturn(expectedPostDtoSet);
+PostResponse postResponse = postService.getByUserId(user.getId(), pageNo, pageSize, sortType, postSort);
 
-        Set<PostDto> actualPostDtoSet = postService.getByUserId(user.getId(), pageNo, pageSize, sortType, postSort);
-
-        assertEquals(expectedPostDtoSet, actualPostDtoSet);
+        assertEquals(expectedPostDtoSet, postResponse.getContent());
         verify(postRepository, times(1)).findByUserId(user.getId(), pageable);
-        verify(postMapper, times(1)).toDtoSet(postSet);
+        verify(postMapper, times(1)).toDtoList(postList);
     }
 }

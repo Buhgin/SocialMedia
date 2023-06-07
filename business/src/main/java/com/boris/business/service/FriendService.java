@@ -1,5 +1,6 @@
 package com.boris.business.service;
 
+import com.boris.business.exception.ResourceNotFoundException;
 import com.boris.business.mapper.dto.FriendRequestMapper;
 import com.boris.business.model.dto.FriendRequestDto;
 import com.boris.business.model.request.FriendCreateRequest;
@@ -33,7 +34,7 @@ public class FriendService {
                 !userReceiverId.equals(userSender.getId())) {
             User userReceiver = userRepository.findById(userReceiverId).orElseThrow(() -> {
                 log.error("User with id={} not found", userReceiverId);
-                throw new RuntimeException("User not found" + userReceiverId);
+                throw new ResourceNotFoundException("User with id=" + userReceiverId + " not found");
             });
             FriendRequest friendRequest = new FriendRequest();
             friendRequest.setSender(userSender);
@@ -44,8 +45,8 @@ public class FriendService {
         }
         log.info("FriendRequest already exists userSender id ='{}' for userReceiver id = '{}'", userSender.getId(), userReceiverId);
         return friendRequestMapper.toDto(friendRepository.findBySenderIdAndReceiverId(userSender.getId(), userReceiverId).orElseThrow(() -> {
-            log.error("Friend not found");
-            throw new RuntimeException("Friend not found");
+            log.error("FriendRequest user not found Id = {}", userReceiverId);
+            throw new ResourceNotFoundException("FriendRequest userReceiver not found id = " + userReceiverId);
         }));
     }
 
@@ -101,7 +102,7 @@ public class FriendService {
                         friendCreateRequest.userReceiverId(), user.getId())
                 .orElseThrow(() -> {
                     log.error("No friend request found for user with ID= '{}'", friendCreateRequest.userReceiverId());
-                    return new RuntimeException("No friend requests");
+                    return new ResourceNotFoundException("Not friendRequest found for user with ID= "+ friendCreateRequest.userReceiverId());
                 });
 
         if (friendCreateRequest.accept()) {
@@ -128,7 +129,7 @@ public class FriendService {
                         user.getId(), userReceiverId)
                 .orElseThrow(() -> {
                     log.error("No friend requests");
-                    return new RuntimeException("No friend requests");
+                    return new ResourceNotFoundException("Not friendRequest found for user with ID= "+ userReceiverId);
                 });
         deleteFriend(friendRequest);
         friendRepository.delete(friendRequest);
@@ -178,7 +179,7 @@ public class FriendService {
     private User getUser(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> {
             log.error("User with name={} not found", email);
-            throw new RuntimeException("User not found" + email);
+            throw new ResourceNotFoundException("User not found" + email);
         });
 
     }

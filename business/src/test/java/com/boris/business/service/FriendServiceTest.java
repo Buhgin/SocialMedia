@@ -113,7 +113,7 @@ public class FriendServiceTest {
         Exception exception = assertThrows(RuntimeException.class, () ->
                 friendService.createFriendRequest(userSender.getEmail(), nonExistentId));
 
-        Assertions.assertEquals("User not found" + nonExistentId, exception.getMessage());
+        Assertions.assertEquals("User with id=" + nonExistentId + " not found", exception.getMessage());
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.boris.business.model.dto.PostDto;
 import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.PostCreateRequest;
+import com.boris.business.model.response.PostResponse;
 import com.boris.dao.entity.FriendRequest;
 import com.boris.dao.entity.Post;
 import com.boris.dao.entity.User;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Set;
+
 
 @Service
 @Slf4j
@@ -60,7 +61,7 @@ public class PostService {
         return postMapper.toDto(updatedPost);}
         else{
             log.error("This post does not apply to the user id = '{}' ", getUser(name).getId());
-            throw new ResourceNotFoundException("This post does not apply to the user "+ name);
+            throw new ResourceNotFoundException("This post does not apply to the user ID = "+ getUser(name).getId());
     }}
     public void deleteById(Long postId, String name) {
         if (postRepository.existsByIdAndUserId(postId, getUser(name).getId())) {
@@ -69,10 +70,10 @@ public class PostService {
             log.info("post deleted postId = '{}' ",postId);
         } else {
             log.error("This post does not apply to the user id = '{}' ",getUser(name).getId());
-            throw new ResourceNotFoundException("This post does not apply to the user " + name);
+            throw new ResourceNotFoundException("This post does not apply to the user ID = " +getUser(name).getId());
         }
     }
-    public Set<PostDto> getByUserId(Long userid,
+    public PostResponse getByUserId(Long userid,
                                     int pageNo,
                                     int pageSize,
                                     SortType sortType,
@@ -84,16 +85,25 @@ public class PostService {
         Sort sort = Sort.by(sortType.getDirection(), postSort.getAttribute());
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         Page<Post> posts = postRepository.findByUserId(user.getId(), pageable);
-        Set<Post> postSet = posts.toSet();
+        List<Post> postList = posts.toList();
         log.info("posts of user id = '{}' requested",user.getId());
-        return postMapper.toDtoSet(postSet);
+        List<PostDto> postDtoList = postMapper.toDtoList(postList);
+
+        return PostResponse.builder()
+                .content(postDtoList)
+                .pageNo(posts.getNumber())
+                .pageSize(posts.getSize())
+                .totalPages(posts.getTotalPages())
+                .totalElements(posts.getTotalElements())
+                .isLast(posts.isLast())
+                .build();
     }
     public PostDto getOne(Long id) {
         Post post = getPost(id);
         log.info("post id ='{}' found title = '{}'",post.getId(),post.getTitle());
         return postMapper.toDto(post);
     }
-    public List<PostDto> getAllUsersSubscriptionActivities(String name,
+    public PostResponse getAllUsersSubscriptionActivities(String name,
                                                           int pageNo,
                                                           int pageSize,
                                                           SortType sortType,
@@ -108,7 +118,15 @@ public class PostService {
         Page<Post> pagePost = postRepository.findAllByUserIdInOrderByCreatedAtDesc(receiverIds, pageable);
         List<Post> posts = pagePost.toList();
         log.info("user id ='{}' requested subscription posts",user.getId());
-        return postMapper.toDtoList(posts);
+        List<PostDto> postDtoList = postMapper.toDtoList(posts);
+        return PostResponse.builder()
+                .content(postDtoList)
+                .pageNo(pagePost.getNumber())
+                .pageSize(pagePost.getSize())
+                .totalPages(pagePost.getTotalPages())
+                .totalElements(pagePost.getTotalElements())
+                .isLast(pagePost.isLast())
+                .build();
     }
 
     private User getUser(String userName){

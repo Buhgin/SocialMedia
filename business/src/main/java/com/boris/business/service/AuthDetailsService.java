@@ -1,5 +1,6 @@
 package com.boris.business.service;
 
+import com.boris.business.exception.UserAlreadyExistsException;
 import com.boris.business.mapper.dto.AuthDetailsMapper;
 import com.boris.business.mapper.request.AuthDetailsCreateMapper;
 import com.boris.business.model.dto.AuthDetailsDto;
@@ -28,6 +29,10 @@ public class AuthDetailsService {
     public AuthDetailsDto create(RegistrationRequest request) {
         log.info("Creating new user with email='{}'", request.email());
         User user = authDetailsCreateMapper.toEntity(request);
+        if(userRepository.findByEmail(user.getEmail()).isPresent()) {
+            log.info("User with email {} already exists", user.getEmail());
+            throw new UserAlreadyExistsException("User with this email already exists email = " + user.getEmail());
+        }
         userRepository.save(user);
 
         log.info("User with email {} created and id={} assigned", user.getEmail(), user.getId());

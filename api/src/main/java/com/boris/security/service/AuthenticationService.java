@@ -27,13 +27,12 @@ public class AuthenticationService {
     private final AuthenticationDetails authenticationDetails;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
-    private final TokenRepository tokenRepository;
 
     public TokenResponse register(RegistrationRequest registrationRequest) {
         RegistrationRequest saveRequest = new RegistrationRequest(registrationRequest.username(),
                 registrationRequest.email(),
-               passwordEncoder.encode(registrationRequest.password()));
-
+               passwordEncoder.encode(registrationRequest.password())
+        );
 
         AuthDetailsDto authDetailsDto = authDetailsService.create(saveRequest);
         authenticationDetails.setAuthDetailsDto(authDetailsDto);

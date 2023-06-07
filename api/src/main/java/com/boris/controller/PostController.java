@@ -4,6 +4,7 @@ import com.boris.business.model.dto.PostDto;
 import com.boris.business.model.enums.sort.PostSortBy;
 import com.boris.business.model.enums.sort.SortType;
 import com.boris.business.model.request.PostCreateRequest;
+import com.boris.business.model.response.PostResponse;
 import com.boris.business.service.PostService;
 import com.boris.model.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,13 +34,13 @@ public class PostController {
     private final PostService postService;
 
 
-    @PostMapping("users/{userId}")
+    @PostMapping()
     @Operation(summary = "Create post", description = "Creating post and unique identifier assigning. Follows model's " +
             "constraints to avoid unhandled errors")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Post created and will be returned with id", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PostDto.class))}),
-            @ApiResponse(responseCode = "409", description = "Post is already exists", content = {
+            @ApiResponse(responseCode = "400", description = "Invalid json", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })
@@ -58,7 +59,8 @@ public class PostController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })
-    public Set<PostDto> findPostUserID(@Valid @PathVariable(value = "userId") Long useId,
+
+    public PostResponse findPostUserID( @PathVariable(value = "userId") Long useId,
                                        @RequestParam(defaultValue = "0") @PositiveOrZero Integer page,
                                        @RequestParam(defaultValue = "10") @Positive Integer quantity,
                                        @RequestParam(defaultValue = "createdAt") PostSortBy companySortBy,
@@ -72,7 +74,7 @@ public class PostController {
     @ApiResponse(responseCode = "200", description = "Post returned", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PostDto.class))
     }),
-    @ApiResponse(responseCode = "400", description = "Invalid id", content = {
+    @ApiResponse(responseCode = "409", description = "Invalid id", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
     })
     })
@@ -86,7 +88,7 @@ public class PostController {
     @ApiResponse(responseCode = "200", description = "Post updated", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PostDto.class))
     }),
-    @ApiResponse(responseCode = "400", description = "Invalid request body", content = {
+    @ApiResponse(responseCode = "409", description = "Invalid request body", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
     })
     })
@@ -102,7 +104,7 @@ public class PostController {
     @ApiResponse(responseCode = "204", description = "Post deleted", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PostDto.class))
     }),
-    @ApiResponse(responseCode = "400", description = "Invalid id", content = {
+    @ApiResponse(responseCode = "409", description = "Invalid id", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
     })
     })
@@ -120,7 +122,8 @@ public class PostController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })
-    public List<PostDto> getAllPostsUsersSubscriptionActivities (
+
+    public PostResponse getAllPostsUsersSubscriptionActivities (
                                                                 @RequestParam(defaultValue = "0") @PositiveOrZero Integer page,
                                                                 @RequestParam(defaultValue = "10") @Positive Integer quantity,
                                                                 @RequestParam(defaultValue = "createdAt") PostSortBy activitySortBy,

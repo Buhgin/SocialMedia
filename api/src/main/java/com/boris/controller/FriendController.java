@@ -107,7 +107,8 @@ public class FriendController {
            @ApiResponse(responseCode = "204", description = "Friend request deleted", content = {
                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = FriendRequestDto.class))
            }),
-            @ApiResponse(responseCode = "400", description = "Invalid request body", content = {
+
+            @ApiResponse(responseCode = "409", description = "Not friendRequest found for user with ID= ", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })

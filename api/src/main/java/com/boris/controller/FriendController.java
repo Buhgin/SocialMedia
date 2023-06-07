@@ -36,7 +36,11 @@ public class FriendController {
             @ApiResponse(responseCode = "200", description = "Friend request created and will be returned with id", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = FriendRequestDto.class))}),
             @ApiResponse(responseCode = "409", description = "User receiver id is not valid", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))})
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Invalid json", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
+            })
+
     })
     public ResponseEntity<FriendRequestDto> create(@PathVariable(value = "userReceiverId")
                                                    Long userReceiverId) {

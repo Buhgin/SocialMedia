@@ -37,8 +37,10 @@ public class AuthDetailsController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TokenResponse.class))}),
             @ApiResponse(responseCode = "409", description = "User email is already taken", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Validation error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
-
     })
     public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.register(registrationRequest));
@@ -51,8 +53,10 @@ public class AuthDetailsController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TokenResponse.class))}),
             @ApiResponse(responseCode = "409", description = "User's email or password incorrect", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Validation error", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
-
     })
     public TokenResponse login(@Valid @RequestBody LoginRequest loginRequest) {
         return authenticationService.login(loginRequest);

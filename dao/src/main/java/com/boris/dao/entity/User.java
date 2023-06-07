@@ -24,6 +24,7 @@ public class User {
     private String username;
 
     @Column(name = "email", nullable = false, unique = true)
+
     private String email;
 
     @Column(name = "password", nullable = false)

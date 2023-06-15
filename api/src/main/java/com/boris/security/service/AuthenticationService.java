@@ -1,5 +1,6 @@
 package com.boris.security.service;
 
+import com.boris.business.exception.ResourceNotFoundException;
 import com.boris.business.model.dto.AuthDetailsDto;
 import com.boris.business.model.request.AccessTokenCreateRequest;
 import com.boris.business.model.request.LoginRequest;
@@ -9,14 +10,18 @@ import com.boris.business.model.response.AccessTokenResponse;
 import com.boris.business.model.response.TokenResponse;
 import com.boris.business.service.AuthDetailsService;
 import com.boris.business.service.TokenService;
+import com.boris.dao.entity.Token;
 import com.boris.dao.repository.TokenRepository;
 import com.boris.security.config.filter.JwtService;
 import com.boris.security.details.AuthenticationDetails;
+import com.boris.util.UserSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +92,16 @@ public class AuthenticationService {
                 .accessToken(jwtAccessToken)
                 .build();
     }
+    public String logoutUser(String UserName) {
+        List<Token> allValidTokenByUser = tokenService.getAllValidTokenByUser(UserName);
+        if(allValidTokenByUser.size()==0){
+           throw new ResourceNotFoundException("no valid tokens");
+        }
+        for(Token token: allValidTokenByUser){
+            tokenService.getOneByToken(token.getToken());
+        }
+        return "ok";
+    }
 
     private TokenResponse setTokens(String jwtAccessToken, String jwtRefreshToken) {
         return TokenResponse.builder()
@@ -99,4 +114,5 @@ public class AuthenticationService {
 
         return new TokenCreateRequest(jwtAccessToken, authDetailsDto);
     }
+
 }

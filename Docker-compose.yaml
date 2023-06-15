@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+      - "8080:8080"
+    environment:
+      POSTGRES_DB: social_media
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Duotestis1
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  app:
+    image: social-media-api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: Duotestis1
+      DB_NAME: social_media
+    network_mode:
+      service:db
+volumes:
+  db-data:

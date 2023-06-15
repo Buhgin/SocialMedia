@@ -23,8 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,9 +46,10 @@ public MessageDto createMessage(MessageCreateRequest messageCreateRequest, Strin
                 Message message = messageCreateMapper.toEntity(messageCreateRequest);
                 message.setSender(getUser(username));
                 message.setReceiver(friendStatus.get().getReceiver());
-                message.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+                //  message.setCreatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
                 messageRepository.save(message);
-                log.info("Creating new message with text = '{}' and the receiverId = '{}' for the user = '{}', ",messageCreateRequest.text(),messageCreateRequest.receiverId(), friendStatus.get().getReceiver().getUsername());
+                log.info("Creating new message with text = '{}' and the receiverId = '{}' for the user = '{}', ",
+                        messageCreateRequest.text(),messageCreateRequest.receiverId(), friendStatus.get().getReceiver().getUsername());
                 return messageMapper.toDto(message);
         }
         log.error("The user = '{}' does not have a friend id = '{}'", username, messageCreateRequest.receiverId());
@@ -63,12 +62,14 @@ public List<MessageDto> getChatMessage(String username,
                                        int pageSize,
                                        SortType sortType,
                                        MessageSortBy messageSortBy) {
+
         User senderUser = getUser(username);
         Sort sort = Sort.by(sortType.getDirection(), messageSortBy.getAttribute());
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         Page<Message> messages = messageRepository.findAll(
                 MessageSpecifications.findBySenderIdAndReceiverId(senderUser.getId(), receiverFriendId),
                 pageable);
+
         log.info("Getting chat messages for the user = '{}'", senderUser.getUsername());
         return messageMapper.toDtoList(messages.getContent());
 }

@@ -2,6 +2,7 @@ package com.boris.security.config;
 
 import com.boris.security.config.filter.JwtAuthenticationFilter;
 import com.boris.security.details.AuthenticationDetailsService;
+import com.boris.security.details.CustomLogoutSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,7 @@ public class SecurityConfig {
     private final AuthenticationDetailsService authenticationDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final CustomLogoutSuccessHandler logoutSuccessHandler;
     @Lazy
     private final AuthenticationProvider authenticationProvider;
 
@@ -41,6 +43,10 @@ public class SecurityConfig {
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .logout()
+                .logoutUrl("/logout")
+                .logoutSuccessHandler(logoutSuccessHandler)
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

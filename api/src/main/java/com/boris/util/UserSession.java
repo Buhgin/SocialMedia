@@ -9,7 +9,6 @@ public class UserSession {
     }
     public static String getCurrentUserName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         return authentication.getName();
     }
 }

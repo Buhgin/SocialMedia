@@ -31,7 +31,8 @@ public class AuthDetailsService {
         User user = authDetailsCreateMapper.toEntity(request);
         if(userRepository.findByEmail(user.getEmail()).isPresent()) {
             log.info("User with email {} already exists", user.getEmail());
-            throw new UserAlreadyExistsException("User with this email already exists email = " + user.getEmail());
+            throw new UserAlreadyExistsException("User with this email already exists email = "
+                    + user.getEmail());
         }
         userRepository.save(user);
 

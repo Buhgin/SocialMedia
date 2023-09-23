@@ -47,7 +47,7 @@ public class MessageController {
         return messageService.createMessage(messageCreateRequest, getCurrentUserName());
     }
 
-    @GetMapping("/requests/chat/{receiverFriendId}")
+    @GetMapping("/requests-chat/{receiverFriendId}")
     @Operation(summary = "Get chat messages", description = "Get chat messages with pagination and sorting")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Messages returned", content = {

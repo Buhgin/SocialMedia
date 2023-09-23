@@ -84,7 +84,7 @@ public class FriendService {
         if (friendRequests.size() != 0) {
             return friendRequests.stream()
                     .peek(friendRequest -> {
-                        friendRequest.setStatus( RequestStatus.ACCEPTED);
+                        friendRequest.setStatus(RequestStatus.ACCEPTED);
                         friendRepository.save(friendRequest);
                         createFriend(friendRequest);
                         log.info("Friend request accepted from userName ='{}'", friendRequest.getReceiver().getUsername());
@@ -95,14 +95,15 @@ public class FriendService {
         return new HashSet<>();
     }
 
-    public FriendRequestDto acceptFriendRequest(FriendCreateRequest friendCreateRequest, String senderName) {
+    public FriendRequestDto acceptFriendRequest(FriendCreateRequest friendCreateRequest,
+                                                String senderName) {
         User user = getUser(senderName);
 
         FriendRequest friendRequest = friendRepository.findBySenderIdAndReceiverId(
                         friendCreateRequest.userReceiverId(), user.getId())
                 .orElseThrow(() -> {
                     log.error("No friend request found for user with ID= '{}'", friendCreateRequest.userReceiverId());
-                    return new ResourceNotFoundException("Not friendRequest found for user with ID= "+ friendCreateRequest.userReceiverId());
+                    return new ResourceNotFoundException("Not friendRequest found for user with ID= " + friendCreateRequest.userReceiverId());
                 });
 
         if (friendCreateRequest.accept()) {
@@ -110,7 +111,7 @@ public class FriendService {
             createFriend(friendRequest);
             friendRepository.save(friendRequest);
             log.info("Friend Request accepted by user id ='{}' from user id='{}'",
-                  user.getId(),
+                    user.getId(),
                     friendRequest.getReceiver().getId());
         } else {
             friendRequest.setStatus(RequestStatus.DECLINED);
@@ -125,13 +126,16 @@ public class FriendService {
 
     public void deleteFriendRequest(Long userReceiverId, String senderName) {
         User user = getUser(senderName);
+
         FriendRequest friendRequest = friendRepository.findBySenderIdAndReceiverId(
                         user.getId(), userReceiverId)
                 .orElseThrow(() -> {
                     log.error("No friend requests");
-                    return new ResourceNotFoundException("Not friendRequest found for user with ID= "+ userReceiverId);
+                    return new ResourceNotFoundException("Not friendRequest found for user with ID= " + userReceiverId);
                 });
+
         deleteFriend(friendRequest);
+
         friendRepository.delete(friendRequest);
         log.info("Friend request deleted by user id ='{}' from user id='{}'",
                 user.getId(),
@@ -148,19 +152,25 @@ public class FriendService {
             log.info(" Friend request from user id = '{}' for user id = '{}' has been updated to ACCEPTED status",
                     friendRequest.getReceiver().getId(),
                     friendRequest.getSender().getId());
+
             friend.setStatus(RequestStatus.ACCEPTED);
+
             friendRepository.save(friend);
+
         } else {
             FriendRequest newFriendRequest = new FriendRequest();
             newFriendRequest.setSender(friendRequest.getReceiver());
             newFriendRequest.setReceiver(friendRequest.getSender());
             newFriendRequest.setStatus(RequestStatus.ACCEPTED);
+
             friendRepository.save(newFriendRequest);
+
             log.info("created a new friendRequest from user id = '{}' for user id = '{}' with status ACCEPTED",
                     friendRequest.getReceiver().getId(),
                     friendRequest.getSender().getId());
         }
     }
+
     private void deleteFriend(FriendRequest friendRequest) {
         Optional<FriendRequest> existingFriendRequest =
                 friendRepository.findBySenderIdAndReceiverId(friendRequest.getReceiver().getId(),

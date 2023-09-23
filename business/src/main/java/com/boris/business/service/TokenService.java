@@ -71,4 +71,9 @@ public class TokenService {
         }
         return Optional.empty();
     }
+    public List<Token> getAllValidTokenByUser(String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new NoSuchElementException("User not found"));
+        log.info("Searching for all valid tokens for user with id '{}'",user.getId());
+        return tokenRepository.findAllValidTokenByUser(user.getId());
+    }
 }

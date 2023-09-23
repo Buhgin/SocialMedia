@@ -33,7 +33,6 @@ import static com.boris.util.UserSession.getCurrentUserName;
 public class PostController {
     private final PostService postService;
 
-
     @PostMapping()
     @Operation(summary = "Create post", description = "Creating post and unique identifier assigning. Follows model's " +
             "constraints to avoid unhandled errors")
@@ -60,7 +59,7 @@ public class PostController {
             })
     })
 
-    public PostResponse findPostUserID( @PathVariable(value = "userId") Long useId,
+    public PostResponse findPostUserId( @PathVariable(value = "userId") Long useId,
                                        @RequestParam(defaultValue = "0") @PositiveOrZero Integer page,
                                        @RequestParam(defaultValue = "10") @Positive Integer quantity,
                                        @RequestParam(defaultValue = "createdAt") PostSortBy companySortBy,
@@ -98,20 +97,7 @@ public class PostController {
         return postService.update(id, postCreateRequest, getCurrentUserName());
     }
 
-    @DeleteMapping("/{postId}")
-    @Operation(summary = "Delete post", description = "Delete post by id")
-    @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Post deleted", content = {
-            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PostDto.class))
-    }),
-    @ApiResponse(responseCode = "409", description = "Invalid id", content = {
-            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
-    })
-    })
-    public ResponseEntity<HttpStatus> delete(@PathVariable(value = "postId") Long id) {
-        postService.deleteById(id, getCurrentUserName());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
+
     @GetMapping("/activities")
     @Operation(summary = "Get all posts by users subscription activities", description = "Get all posts by users subscription activities")
     @ApiResponses(value = {
@@ -122,12 +108,25 @@ public class PostController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
             })
     })
-
     public PostResponse getAllPostsUsersSubscriptionActivities (
                                                                 @RequestParam(defaultValue = "0") @PositiveOrZero Integer page,
                                                                 @RequestParam(defaultValue = "10") @Positive Integer quantity,
                                                                 @RequestParam(defaultValue = "createdAt") PostSortBy activitySortBy,
                                                                 @RequestParam(defaultValue = "ASC") SortType sortType) {
         return postService.getAllUsersSubscriptionActivities(getCurrentUserName(), page, quantity, sortType, activitySortBy);
+    }
+    @DeleteMapping("/{postId}")
+    @Operation(summary = "Delete post", description = "Delete post by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Post deleted", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PostDto.class))
+            }),
+            @ApiResponse(responseCode = "409", description = "Invalid id", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiErrorResponse.class))
+            })
+    })
+    public ResponseEntity<HttpStatus> delete(@PathVariable(value = "postId") Long id) {
+        postService.deleteById(id, getCurrentUserName());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

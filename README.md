@@ -75,6 +75,46 @@
 Благодаря выбранной архитектуре и инструментам, проект обладает высокой масштабируемостью, модульностью и читаемостью кода. Это делает его устойчивым к изменениям и легко расширяемым для дальнейшего развития.
 
 ### Build
+- Для запуска приложения после клонирования выполните следующие шаги:
+- Создайте файл application.yml по пути api/src/main/resources.
+- Заполните файл следующим содержимым (замените места заполнения на вашу информацию):
+yaml
+Copy code
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: [YOUR_DATABASE_URL]
+    username: [YOUR_USERNAME]
+    password: [YOUR_PASSWORD]
+  initialization-mode: always
+  jpa:
+    - generate-ddl: true
+    - show-sql: false
+    - defer-datasource-initialization: true
+    - properties:
+      - hibernate:
+        - dialect: org.hibernate.dialect.PostgreSQLDialect
+        - enable_lazy_load_no_trans: true
+        - format_sql: true
+        - generate_statistics: false
+        - jdbc:
+          - time_zone: UTC
+    - hibernate:
+      - ddl-auto: create-drop
+
+- jwt:
+  - secret: [YOUR_SECRET_TOCKEN]
+  - access_token_duration: 1200001
+  - refresh_token_duration: 157634000000
+
+- api:
+  - version:
+    - api/v1
+ ### Внимание: 
+- Никогда не коммитте файлы с приватными ключами или паролями в ваш репозиторий. Убедитесь, что application.yml добавлен в .gitignore.
+
+Docker
+- Чтобы запустить приложение с использованием Docker:
 - docker build -t social-media-api .
 - docker-compose up
 

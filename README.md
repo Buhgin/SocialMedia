@@ -79,7 +79,7 @@
 - Создайте файл application.yml по пути api/src/main/resources.
 - Заполните файл следующим содержимым (замените места заполнения на вашу информацию):
 yaml
-Copy code
+```ruby
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -110,6 +110,7 @@ spring:
 - api:
   - version:
     - api/v1
+```
  ### Внимание: 
 - Никогда не коммитте файлы с приватными ключами или паролями в ваш репозиторий. Убедитесь, что application.yml добавлен в .gitignore.
 
